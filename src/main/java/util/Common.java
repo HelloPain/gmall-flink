@@ -5,14 +5,21 @@ package util;
  * @Date: 2023/11/3 14:01
  */
 public class Common {
+    public static final int PARALLELISM = 3;
     public static final String KAFKA_SERVERS = "hadoop102:9092"; // properties better？
     public static final String CHECKPOINT_PATH = "hdfs://hadoop102:8020/flink-gmall/ck";
     public static final String TOPIC_ODS_DB = "topic_db";
-    public static final String KAFKA_GROUP = "dim_app";
-    public static final String TOPIC_ODS_LOG = " topic_log";
+    public static final String KAFKA_DIM_GROUP = "dim_app";
+    public static final String KAFKA_DWD_LOG_GROUP = "dwd_log_split";
+    public static final String KAFKA_DWD_COMMENT_INFO_GROUP = "dwd_comment_info";
+    public static final String TOPIC_ODS_LOG = "topic_log";
 
     public static final String MYSQL_HOST = "hadoop102";
     public static final int MYSQL_PORT = 3306;
+
+    public static final String MYSQL_USERNAME = "root";
+
+    public static final String MYSQL_PASSWORD = "000000";
 
     public static final String HBASE_NAMESPACE = "gmall_flink";
 

@@ -1,4 +1,4 @@
-package app.dim;
+package app.dim.func;
 
 import bean.TableProcess;
 import com.alibaba.fastjson.JSON;
@@ -37,32 +37,19 @@ public class DimCreateTableMapFunction extends RichMapFunction<String, TableProc
         }
         res.setOp(op);
 
-        //drop table for d or create table for c
         if("dim".equals(res.getSinkType())){
-            if("d".equals(op)){
+            if("d".equals(op)){//drop table for d
                 HBaseUtil.dropTable(hbaseConn, Common.HBASE_NAMESPACE, res.getSinkTable());
-            } else if ("u".equals(op)) {
+            } else if ("u".equals(op)) {//drop and create table for u
                 HBaseUtil.dropTable(hbaseConn, Common.HBASE_NAMESPACE, res.getSinkTable());
-                byte[][] splitKeys = getSplitKeys(res.getSinkExtend());
-                HBaseUtil.createTable(hbaseConn, Common.HBASE_NAMESPACE, res.getSinkTable(), splitKeys, res.getSinkColumns().split(","));
-            } else{// c r
-                byte[][] splitKeys = getSplitKeys(res.getSinkExtend());
-                HBaseUtil.createTable(hbaseConn, Common.HBASE_NAMESPACE, res.getSinkTable(), splitKeys, res.getSinkColumns().split(","));
+                byte[][] splitKeys = HBaseUtil.getSplitKeys(res.getSinkExtend());
+                HBaseUtil.createTable(hbaseConn, Common.HBASE_NAMESPACE, res.getSinkTable(), splitKeys, res.getSinkFamily().split(","));
+            } else{// create table for c
+                byte[][] splitKeys = HBaseUtil.getSplitKeys(res.getSinkExtend());
+                HBaseUtil.createTable(hbaseConn, Common.HBASE_NAMESPACE, res.getSinkTable(), splitKeys, res.getSinkFamily().split(","));
             }
         }
+
         return res;
-    }
-
-
-    private byte[][] getSplitKeys(String sinkExtend){
-        if(sinkExtend == null || sinkExtend.length() == 0){
-            return null;
-        }
-        String[] splits = sinkExtend.split(",");//00|,01|,02|
-        byte[][] bytes = new byte[splits.length][];
-        for (int i = 0; i < splits.length; i++) {
-            bytes[i] = splits[i].getBytes();
-        }
-        return bytes;
     }
 }

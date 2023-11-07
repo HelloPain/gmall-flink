@@ -1,6 +1,9 @@
 package app.dim;
 
 
+import app.dim.func.DimCreateTableMapFunction;
+import app.dim.func.DimSinkFunction;
+import app.dim.func.DimTableProcessFunction;
 import bean.TableProcess;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -30,25 +33,27 @@ import java.util.concurrent.TimeUnit;
  * @Date: 2023/11/3 13:51
  */
 public class DimApp {
+
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(3);//=kafka partition
+        env.setParallelism(Common.PARALLELISM);//=kafka partition
 
         System.setProperty("HADOOP_USER_NAME", "pj");
         CheckpointConfig checkpointConfig = env.getCheckpointConfig();
         checkpointConfig.setCheckpointTimeout(30000L);
         checkpointConfig.setCheckpointStorage(Common.CHECKPOINT_PATH);
         checkpointConfig.enableExternalizedCheckpoints(
-                CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
-        checkpointConfig.setMinPauseBetweenCheckpoints(5000L);
-        env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3, 2000L));
+                CheckpointConfig.ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION);
+        checkpointConfig.setMinPauseBetweenCheckpoints(10000L);
+        env.setRestartStrategy(RestartStrategies.fixedDelayRestart(100, 2000L));
         env.enableCheckpointing(TimeUnit.SECONDS.toMillis(3), CheckpointingMode.EXACTLY_ONCE);
 
-
-        KafkaSource<String> kafkaSource = KafkaUtil.getKafkaSource(Common.TOPIC_ODS_DB, Common.KAFKA_GROUP);
+        KafkaSource<String> kafkaSource = KafkaUtil.getKafkaSource(Common.TOPIC_ODS_DB, Common.KAFKA_DIM_GROUP);
         DataStreamSource<String> kafkaDs = env.fromSource(kafkaSource,
                 WatermarkStrategy.noWatermarks(), "kafkaSource");
-        SingleOutputStreamOperator<JSONObject> kafkaJsonDs = kafkaDs.flatMap(new FlatMapFunction<String, JSONObject>() {
+        SingleOutputStreamOperator<JSONObject> kafkaJsonDs =
+                kafkaDs.flatMap(new FlatMapFunction<String, JSONObject>() {
+                   // Integer count = 0;
             @Override
             public void flatMap(String value, Collector<JSONObject> out) {
                 try {
@@ -63,6 +68,7 @@ public class DimApp {
 
             }
         });
+        //kafkaDs.print("kafkaDs>>");
 
         MySqlSource<String> mysqlSource = MySqlSource.<String>builder()
                 .hostname(Common.MYSQL_HOST)
@@ -75,28 +81,23 @@ public class DimApp {
                 .startupOptions(StartupOptions.initial())
                 .deserializer(new JsonDebeziumDeserializationSchema())
                 .build();
-        DataStreamSource<String> mysqlDs = env.fromSource(mysqlSource, WatermarkStrategy.noWatermarks(), "mysqlSource");
+        DataStreamSource<String> mysqlDs = env.fromSource(mysqlSource,
+                WatermarkStrategy.noWatermarks(), "mysqlSource");
+        //mysqlDs.print("mysqlDs>>");
 
+        //K: sourceTable, V: TableProcess
         MapStateDescriptor<String, TableProcess> mapStateDescriptor =
                 new MapStateDescriptor<>("mapState", String.class, TableProcess.class);
+
         BroadcastStream<TableProcess> broadcastMysqlDs = mysqlDs
-                .map(new DimCreateTableMapFunction())
+                .map(new DimCreateTableMapFunction()) //Create hbase table for every table_process
                 .broadcast(mapStateDescriptor);
 
-        kafkaJsonDs.connect(broadcastMysqlDs)
-                .process(new BroadcastProcessFunction<JSONObject, TableProcess, String>() {
-                    @Override
-                    public void processElement(JSONObject value, BroadcastProcessFunction<JSONObject, TableProcess, String>.ReadOnlyContext ctx, Collector<String> out) throws Exception {
-                        out.collect(value.toJSONString());
-                    }
+        SingleOutputStreamOperator<JSONObject> hbaseDs = kafkaJsonDs.connect(broadcastMysqlDs)
+                .process(new DimTableProcessFunction(mapStateDescriptor));
 
-                    @Override
-                    public void processBroadcastElement(TableProcess value, BroadcastProcessFunction<JSONObject, TableProcess, String>.Context ctx, Collector<String> out) throws Exception {
-
-                    }
-                })
-                .print();
-
+        hbaseDs.print("hbaseDS>>");
+        hbaseDs.addSink(new DimSinkFunction());
 
         env.execute("Dim App");
     }
