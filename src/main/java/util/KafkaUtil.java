@@ -1,12 +1,20 @@
 package util;
 
+
+import com.alibaba.fastjson.JSONObject;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchemaBuilder;
+import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 /**
@@ -25,7 +33,7 @@ public class KafkaUtil {
                     public String deserialize(byte[] message) throws IOException {
                         //SimpleStringSchema can't handle null message,
                         //so we need to new DeserializationSchema
-                        if(message == null) {
+                        if (message == null) {
                             return null;
                         }
                         return new String(message);
@@ -43,4 +51,18 @@ public class KafkaUtil {
                 })
                 .build();
     }
+
+    public static KafkaSink<JSONObject> getKafkaSink(String topic) {
+        return KafkaSink.<JSONObject>builder()
+                .setBootstrapServers(Common.KAFKA_SERVERS)
+                .setRecordSerializer(new KafkaRecordSerializationSchema<JSONObject>() {
+                    @Nullable
+                    @Override
+                    public ProducerRecord<byte[], byte[]> serialize(JSONObject jsonObject, KafkaSinkContext kafkaSinkContext, Long aLong) {
+                        return new ProducerRecord<>(topic, jsonObject.toJSONString().getBytes());
+                    }
+                })
+                .build();
+    }
+
 }
