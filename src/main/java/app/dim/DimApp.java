@@ -21,7 +21,6 @@ import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
 import org.apache.flink.util.Collector;
 import util.Common;
 import util.KafkaUtil;
@@ -31,6 +30,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * @Author: PJ, SATAN LOVES YOU FOREVER
  * @Date: 2023/11/3 13:51
+ * @Function: Put dim table input hbase according to config table in mysql
+ * @DataLink: mock -> maxwell bootstrap -> kafka + mysql -> flink -> hbase
  */
 public class DimApp {
 
@@ -48,12 +49,12 @@ public class DimApp {
         env.setRestartStrategy(RestartStrategies.fixedDelayRestart(100, 2000L));
         env.enableCheckpointing(TimeUnit.SECONDS.toMillis(3), CheckpointingMode.EXACTLY_ONCE);
 
+        //1.read topic_db data from kafka
         KafkaSource<String> kafkaSource = KafkaUtil.getKafkaSource(Common.TOPIC_ODS_DB, Common.KAFKA_DIM_GROUP);
         DataStreamSource<String> kafkaDs = env.fromSource(kafkaSource,
                 WatermarkStrategy.noWatermarks(), "kafkaSource");
         SingleOutputStreamOperator<JSONObject> kafkaJsonDs =
                 kafkaDs.flatMap(new FlatMapFunction<String, JSONObject>() {
-                   // Integer count = 0;
             @Override
             public void flatMap(String value, Collector<JSONObject> out) {
                 try {
@@ -70,6 +71,7 @@ public class DimApp {
         });
         //kafkaDs.print("kafkaDs>>");
 
+        //2.read dim hbase config data from mysql
         MySqlSource<String> mysqlSource = MySqlSource.<String>builder()
                 .hostname(Common.MYSQL_HOST)
                 .port(Common.MYSQL_PORT)

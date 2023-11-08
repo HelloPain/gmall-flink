@@ -28,7 +28,6 @@ import static util.JdbcUtil.queryList;
 public class DimTableProcessFunction extends BroadcastProcessFunction<JSONObject, TableProcess, JSONObject> {
     MapStateDescriptor<String, TableProcess> mapStateDescriptor;
     HashMap<String, TableProcess> cacheMap;
-    Integer count = 0;
 
     public DimTableProcessFunction(MapStateDescriptor<String, TableProcess> _mapStateDescriptor) {
         mapStateDescriptor = _mapStateDescriptor;
@@ -41,14 +40,18 @@ public class DimTableProcessFunction extends BroadcastProcessFunction<JSONObject
         //为了冷启动？
         Connection mysqlConn = DriverManager.getConnection(Common.MYSQL_URL, Common.MYSQL_USERNAME, Common.MYSQL_PASSWORD);
         org.apache.hadoop.hbase.client.Connection hbaseConn = HBaseUtil.getConnection();
-        List<TableProcess> tableProcesses = queryList(mysqlConn,
-                "select * from gmall_config.table_process where sink_type='dim'"
-                , TableProcess.class, true);
+        List<TableProcess> tableProcesses = queryList(
+                mysqlConn,
+                "select * from gmall_config.table_process where sink_type='dim'",
+                TableProcess.class,
+                true);
 
         cacheMap = new HashMap<>();
         for (TableProcess tableProcess : tableProcesses) {
             HBaseUtil.createTable(
-                    hbaseConn, Common.HBASE_NAMESPACE, tableProcess.getSinkTable(),
+                    hbaseConn,
+                    Common.HBASE_NAMESPACE,
+                    tableProcess.getSinkTable(),
                     HBaseUtil.getSplitKeys(tableProcess.getSinkExtend()),
                     tableProcess.getSinkFamily().split(","));
             cacheMap.put(tableProcess.getSourceTable(), tableProcess);
@@ -60,7 +63,10 @@ public class DimTableProcessFunction extends BroadcastProcessFunction<JSONObject
     public void processElement(JSONObject value,
                                BroadcastProcessFunction<JSONObject, TableProcess, JSONObject>.ReadOnlyContext ctx,
                                Collector<JSONObject> out) throws Exception {
-        //第一次启动的时候，有可能state中没有数据，可以从mysql先加载数据到state中
+        /*
+         * {"database":"gmall-220623-flink","table":"comment_info","type":"insert","ts":1669162958,"xid":1111,"xoffset":13941,"data":{"id":1595211185799847960,"user_id":119,"nick_name":null,"head_img":null,"sku_id":31,"spu_id":10,"order_id":987,"appraise":"1204","comment_txt":"评论内容：48384811984748167197482849234338563286217912223261","create_time":"2022-08-02 08:22:38","operate_time":null}}
+         * */
+
         ReadOnlyBroadcastState<String, TableProcess> broadcastState = ctx.getBroadcastState(mapStateDescriptor);
         TableProcess tableProcess = broadcastState.get(value.getString("table"));
         if (tableProcess == null) {
@@ -74,7 +80,7 @@ public class DimTableProcessFunction extends BroadcastProcessFunction<JSONObject
             value.put("sink_column_family", tableProcess.getSinkFamily());
             value.put("sink_extend", tableProcess.getSinkExtend());
             //System.out.println("value = " + value);
-            System.out.println("DimTableProcessFunction.count = " + ++count);
+            //System.out.println("DimTableProcessFunction.count = " + ++count);
             out.collect(value);
         }
     }

@@ -28,7 +28,7 @@ public class DimSinkFunction extends RichSinkFunction<JSONObject> {
 
     @Override
     public void invoke(JSONObject value, Context context) throws Exception {
-        System.out.println("\"invoke\" = " + "invoke");
+        //System.out.println("\"invoke\" = " + "invoke");
         JSONObject data = value.getJSONObject("data");
         String type = value.getString("type");
         String hbaseTableName = value.getString("sink_table");
