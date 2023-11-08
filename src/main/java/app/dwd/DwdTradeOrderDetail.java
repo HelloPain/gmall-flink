@@ -9,6 +9,10 @@ import util.FlinkSqlUtil;
 /**
  * @Author: PJ, SATAN LOVES YOU FOREVER
  * @Date: 2023/11/7 10:46
+ * @Function: Read topic_db from kafka,
+ *            extract `order_info`,`order_detail`,`order_detail_activity`,`order_detail_coupon` data from topic_db,
+ *            sink to kafka
+ * @DataLink: mock -> maxwell -> kafka(topic_db) -> flink table -> kafka(dwd_trade_order_detail)
  */
 public class DwdTradeOrderDetail {
     public static void main(String[] args) throws Exception {

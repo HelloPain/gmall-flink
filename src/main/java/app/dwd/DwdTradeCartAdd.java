@@ -1,18 +1,20 @@
 package app.dwd;
 
-import com.alibaba.fastjson.JSONObject;
-import org.apache.flink.connector.kafka.sink.KafkaSink;
+
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.Table;
-import org.apache.flink.table.api.TableResult;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import util.Common;
 import util.FlinkSqlUtil;
-import util.KafkaUtil;
+
 
 /**
  * @Author: PJ, SATAN LOVES YOU FOREVER
  * @Date: 2023/11/7 10:16
+ * @Function: Read topic_db data from kafka,
+ *            extract `cart add` data from topic_db,
+ *            sink to kafka
+ * @DataLink: mock -> maxwell -> kafka(topic_db) -> flink table -> kafka(dwd_cart_add)
  */
 public class DwdTradeCartAdd {
     public static void main(String[] args) throws Exception {

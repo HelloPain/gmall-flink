@@ -10,19 +10,23 @@ import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.connector.kafka.sink.KafkaSink;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import util.Common;
 import util.KafkaUtil;
+
+import javax.annotation.Nullable;
 
 /**
  * @Author: PJ, SATAN LOVES YOU FOREVER
  * @Date: 2023/11/6 10:19
+ * @Function: split topic_log into 5 streams
  */
 public class DwdTrafficBaseLogSplit {
     public static void main(String[] args) throws Exception {
@@ -140,11 +144,41 @@ public class DwdTrafficBaseLogSplit {
 //        pageDs.getSideOutput(actionTag).print("actionTag>>");
 //        pageDs.getSideOutput(errorTag).print("errorTag>>");
 
-        pageDs.sinkTo(KafkaUtil.getKafkaSink(Common.TOPIC_DWD_TRAFFIC_PAGE));
-        pageDs.getSideOutput(startTag).sinkTo(KafkaUtil.getKafkaSink(Common.TOPIC_DWD_TRAFFIC_START));
-        pageDs.getSideOutput(displayTag).sinkTo(KafkaUtil.getKafkaSink(Common.TOPIC_DWD_TRAFFIC_DISPLAY));
-        pageDs.getSideOutput(actionTag).sinkTo(KafkaUtil.getKafkaSink(Common.TOPIC_DWD_TRAFFIC_ACTION));
-        pageDs.getSideOutput(errorTag).sinkTo(KafkaUtil.getKafkaSink(Common.TOPIC_DWD_TRAFFIC_ERR));
+        pageDs.sinkTo(KafkaUtil.getKafkaSink(new KafkaRecordSerializationSchema<JSONObject>() {
+                    @Nullable
+                    @Override
+                    public ProducerRecord<byte[], byte[]> serialize(JSONObject jsonObject, KafkaSinkContext kafkaSinkContext, Long aLong) {
+                        return new ProducerRecord<>(Common.TOPIC_DWD_TRAFFIC_PAGE, jsonObject.toJSONString().getBytes());
+                    }
+                }));
+        pageDs.getSideOutput(startTag).sinkTo(KafkaUtil.getKafkaSink(new KafkaRecordSerializationSchema<JSONObject>() {
+            @Nullable
+            @Override
+            public ProducerRecord<byte[], byte[]> serialize(JSONObject jsonObject, KafkaSinkContext kafkaSinkContext, Long aLong) {
+                return new ProducerRecord<>(Common.TOPIC_DWD_TRAFFIC_START, jsonObject.toJSONString().getBytes());
+            }
+        }));
+        pageDs.getSideOutput(displayTag).sinkTo(KafkaUtil.getKafkaSink(new KafkaRecordSerializationSchema<JSONObject>() {
+            @Nullable
+            @Override
+            public ProducerRecord<byte[], byte[]> serialize(JSONObject jsonObject, KafkaSinkContext kafkaSinkContext, Long aLong) {
+                return new ProducerRecord<>(Common.TOPIC_DWD_TRAFFIC_DISPLAY, jsonObject.toJSONString().getBytes());
+            }
+        }));
+        pageDs.getSideOutput(actionTag).sinkTo(KafkaUtil.getKafkaSink(new KafkaRecordSerializationSchema<JSONObject>() {
+            @Nullable
+            @Override
+            public ProducerRecord<byte[], byte[]> serialize(JSONObject jsonObject, KafkaSinkContext kafkaSinkContext, Long aLong) {
+                return new ProducerRecord<>(Common.TOPIC_DWD_TRAFFIC_ACTION, jsonObject.toJSONString().getBytes());
+            }
+        }));
+        pageDs.getSideOutput(errorTag).sinkTo(KafkaUtil.getKafkaSink(new KafkaRecordSerializationSchema<JSONObject>() {
+            @Nullable
+            @Override
+            public ProducerRecord<byte[], byte[]> serialize(JSONObject jsonObject, KafkaSinkContext kafkaSinkContext, Long aLong) {
+                return new ProducerRecord<>(Common.TOPIC_DWD_TRAFFIC_ERR, jsonObject.toJSONString().getBytes());
+            }
+        }));
 
         env.execute();
     }

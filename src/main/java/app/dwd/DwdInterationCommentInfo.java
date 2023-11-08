@@ -11,16 +11,22 @@ import util.GetRowKeyUDF;
 /**
  * @Author: PJ, SATAN LOVES YOU FOREVER
  * @Date: 2023/11/6 15:32
+ * @Function: Read topic_db data from kafka,
+ *            extract `comment info` data from topic_db,
+ *            read dim table base_dic from hbase,
+ *            join base_dic and comment_info,
+ *            sink to kafka
+ * @DataLink: mock -> maxwell -> kafka(topic_db) -> flink table -> kafka(dwd_interaction_comment_info)
  */
 public class DwdInterationCommentInfo {
-    //维度退化：把base_dic中的数据放入comment_info中
+    //维度退化,把base_dic中的数据放入comment_info中
     public static void main(String[] args) throws Exception {
         //1.从kafka读取comment_info的数据，为了使用flinksql创建动态表
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
         StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
         tableEnv.executeSql(FlinkSqlUtil.createTopicDBFlinkTable());
-//        tableEnv.sqlQuery("select * from ods_topic_db").execute().print();
+        //tableEnv.sqlQuery("select * from ods_topic_db").execute().print();
 
         tableEnv.createTemporarySystemFunction("getRowKey", GetRowKeyUDF.class);
         Table commentInfo = tableEnv.sqlQuery(
