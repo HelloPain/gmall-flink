@@ -68,7 +68,7 @@ public class HBaseUtil {
     }
 
     public static void putJsonData(Connection conn, String namespace, String tableName, String rowKey, String colFamily, JSONObject data) throws IOException {
-        System.out.println("\"put json data\" = " + data);
+        //System.out.println("\"put json data\" = " + data);
         Table table = conn.getTable(TableName.valueOf(namespace + ":" + tableName));
         Put put = new Put(rowKey.getBytes());
         for (String key : data.keySet()) {
@@ -76,7 +76,7 @@ public class HBaseUtil {
             if (val != null)
                 put.addColumn(colFamily.getBytes(), key.getBytes(), val.getBytes());
         }
-        System.out.println("\"put:\"+rowKey = " + rowKey);
+        //System.out.println("\"put:\"+rowKey = " + rowKey);
         table.put(put);
         table.close();
     }

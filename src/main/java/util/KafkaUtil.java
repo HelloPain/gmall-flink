@@ -52,17 +52,37 @@ public class KafkaUtil {
                 .build();
     }
 
-    public static KafkaSink<JSONObject> getKafkaSink(String topic) {
-        return KafkaSink.<JSONObject>builder()
+//    public static KafkaSink<JSONObject> getKafkaDimSink(String topic) {// for dim
+//        return KafkaSink.<JSONObject>builder()
+//                .setBootstrapServers(Common.KAFKA_SERVERS)
+//                .setRecordSerializer(new KafkaRecordSerializationSchema<JSONObject>() {
+//                    @Nullable
+//                    @Override
+//                    public ProducerRecord<byte[], byte[]> serialize(JSONObject jsonObject, KafkaSinkContext kafkaSinkContext, Long aLong) {
+//                        return new ProducerRecord<>(topic, jsonObject.toJSONString().getBytes());
+//                    }
+//                })
+//                .build();
+//    }
+//
+//    public static KafkaSink<JSONObject> getKafkaSink() { // for dwd
+//        return KafkaSink.<JSONObject>builder()
+//                .setBootstrapServers(Common.KAFKA_SERVERS)
+//                .setRecordSerializer(new KafkaRecordSerializationSchema<JSONObject>() {
+//                    @Nullable
+//                    @Override
+//                    public ProducerRecord<byte[], byte[]> serialize(JSONObject jsonObject, KafkaSinkContext kafkaSinkContext, Long aLong) {
+//                        return new ProducerRecord<>(jsonObject.getString("sink_topic"),
+//                                jsonObject.toJSONString().getBytes());//getString("data")?
+//                    }
+//                })
+//                .build();
+//    }
+
+    public static <T> KafkaSink<T> getKafkaSink(KafkaRecordSerializationSchema<T> kafkaRecordSerializationSchema){
+        return KafkaSink.<T>builder()
                 .setBootstrapServers(Common.KAFKA_SERVERS)
-                .setRecordSerializer(new KafkaRecordSerializationSchema<JSONObject>() {
-                    @Nullable
-                    @Override
-                    public ProducerRecord<byte[], byte[]> serialize(JSONObject jsonObject, KafkaSinkContext kafkaSinkContext, Long aLong) {
-                        return new ProducerRecord<>(topic, jsonObject.toJSONString().getBytes());
-                    }
-                })
+                .setRecordSerializer(kafkaRecordSerializationSchema)
                 .build();
     }
-
 }
