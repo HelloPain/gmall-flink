@@ -5,6 +5,7 @@ target/
 
 ### IntelliJ IDEA ###
 .idea/
+.idea/Project_Default.xml
 *.iws
 *.iml
 *.ipr
