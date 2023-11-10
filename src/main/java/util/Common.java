@@ -11,6 +11,7 @@ public class Common {
     public static final String TOPIC_ODS_DB = "topic_db";
     public static final String KAFKA_DIM_GROUP = "dim_app";
     public static final String KAFKA_DWD_LOG_GROUP = "dwd_log_split";
+    public static final String KAFKA_DWS_PAGE_GROUP = "dws_page_group";
     public static final String KAFKA_DWD_COMMENT_INFO_GROUP = "dwd_comment_info";
     public static final String TOPIC_ODS_LOG = "topic_log";
 
@@ -51,5 +52,9 @@ public class Common {
     public static final String TOPIC_DWD_USER_REGISTER = "dwd_user_register";
 
     public static final int ONE_DAY = 24 * 60 * 60;
+
+    public static final String DORIS_FE_NODES = "hadoop102:7030";
+    public static final String DORIS_USERNAME = "root";
+    public static final String DORIS_PASSWORD = "";
 
 }

@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
  * @Author: PJ, SATAN LOVES YOU FOREVER
  * @Date: 2023/11/6 10:19
  * @Function: split topic_log into 5 streams
+ * @DataLink:  mock -> flume -> kafka(topic_log) -> flink -> kafka (dwd_traffic_start, dwd_traffic_display, dwd_traffic_action, dwd_traffic_err, dwd_traffic_page)
  */
 public class DwdTrafficBaseLogSplit {
     public static void main(String[] args) throws Exception {
@@ -62,7 +63,7 @@ public class DwdTrafficBaseLogSplit {
                         .keyBy(new KeySelector<JSONObject, String>() { //not necessary?
                             @Override
                             public String getKey(JSONObject value) throws Exception {
-                                System.out.println("mid = " + value.getJSONObject("common").getString("mid"));
+                                //System.out.println("mid = " + value.getJSONObject("common").getString("mid"));
                                 return value.getJSONObject("common").getString("mid");
                             }
                         })
@@ -103,7 +104,10 @@ public class DwdTrafficBaseLogSplit {
                                          JSONObject error = value.getJSONObject("err");
                                          JSONObject common = value.getJSONObject("common");
                                          Long ts = value.getLong("ts");
-                                         String pageId = value.getJSONObject("page").getString("page_id");
+                                         String pageId = null;
+                                         JSONObject page = value.getJSONObject("page");
+                                         if (page != null)
+                                             pageId = page.getString("page_id");
 
 
                                          if (error != null) {
@@ -145,12 +149,12 @@ public class DwdTrafficBaseLogSplit {
 //        pageDs.getSideOutput(errorTag).print("errorTag>>");
 
         pageDs.sinkTo(KafkaUtil.getKafkaSink(new KafkaRecordSerializationSchema<JSONObject>() {
-                    @Nullable
-                    @Override
-                    public ProducerRecord<byte[], byte[]> serialize(JSONObject jsonObject, KafkaSinkContext kafkaSinkContext, Long aLong) {
-                        return new ProducerRecord<>(Common.TOPIC_DWD_TRAFFIC_PAGE, jsonObject.toJSONString().getBytes());
-                    }
-                }));
+            @Nullable
+            @Override
+            public ProducerRecord<byte[], byte[]> serialize(JSONObject jsonObject, KafkaSinkContext kafkaSinkContext, Long aLong) {
+                return new ProducerRecord<>(Common.TOPIC_DWD_TRAFFIC_PAGE, jsonObject.toJSONString().getBytes());
+            }
+        }));
         pageDs.getSideOutput(startTag).sinkTo(KafkaUtil.getKafkaSink(new KafkaRecordSerializationSchema<JSONObject>() {
             @Nullable
             @Override
