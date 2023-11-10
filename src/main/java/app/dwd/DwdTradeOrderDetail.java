@@ -2,9 +2,12 @@ package app.dwd;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.Table;
+import org.apache.flink.table.api.TableConfig;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import util.Common;
 import util.FlinkSqlUtil;
+
+import java.time.Duration;
 
 /**
  * @Author: PJ, SATAN LOVES YOU FOREVER
@@ -22,6 +25,10 @@ public class DwdTradeOrderDetail {
         StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env);
         tableEnv.executeSql(FlinkSqlUtil.createTopicDBFlinkTable());
         //tableEnv.sqlQuery("select * from ods_topic_db").execute().print();
+        //设置TTL
+        TableConfig config = tableEnv.getConfig();
+        //4张表的数据同时生成,给定的时间只需要考虑生产延迟即可
+        config.setIdleStateRetention(Duration.ofSeconds(10));
 
         //2.get tables
         Table orderInfo = tableEnv.sqlQuery("select\n" +
