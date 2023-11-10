@@ -68,7 +68,6 @@ public class DimSinkFunction extends RichSinkFunction<JSONObject> {
         System.out.println(getRowKey("1002", "00|,01|,02|"));
         System.out.println(getRowKey("1003", "00|,01|,02|"));
         System.out.println(getRowKey("1004", "00|,01|,02|"));
-
     }
 
 }
