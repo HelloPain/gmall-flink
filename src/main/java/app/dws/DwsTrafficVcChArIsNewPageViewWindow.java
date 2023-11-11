@@ -49,7 +49,7 @@ public class DwsTrafficVcChArIsNewPageViewWindow {
         env.setStateBackend(new HashMapStateBackend());
 
         DataStreamSource<String> kafkaDs = env.fromSource(KafkaUtil.getKafkaSource(
-                        Common.TOPIC_DWD_TRAFFIC_PAGE, Common.KAFKA_DWS_PAGE_GROUP),
+                        Common.TOPIC_DWD_TRAFFIC_PAGE, Common.KAFKA_DWS_KEYWORD_SPLIT_GROUP),
                 WatermarkStrategy.noWatermarks(), "kafkaSource");
 
 

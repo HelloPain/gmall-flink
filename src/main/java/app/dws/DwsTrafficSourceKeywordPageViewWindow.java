@@ -35,7 +35,7 @@ public class DwsTrafficSourceKeywordPageViewWindow {
                 "  `ts` bigint,\n" +
                 "  `rt` as to_timestamp_ltz(`ts`,3),\n" +
                 "  watermark for `rt` as `rt` - INTERVAL '2' SECONDS\n" +
-                ")" + FlinkSqlUtil.getKafkaConsumerDDL(Common.TOPIC_DWD_TRAFFIC_PAGE, Common.KAFKA_DWS_PAGE_GROUP));
+                ")" + FlinkSqlUtil.getKafkaConsumerDDL(Common.TOPIC_DWD_TRAFFIC_PAGE, Common.KAFKA_DWS_KEYWORD_SPLIT_GROUP));
         //tableEnv.sqlQuery("select * from page_log").execute().print();
 
         Table filterTable = tableEnv.sqlQuery("" +
