@@ -12,6 +12,8 @@ public class Common {
     public static final String KAFKA_DIM_GROUP = "dim_app";
     public static final String KAFKA_DWD_LOG_GROUP = "dwd_log_split";
     public static final String KAFKA_DWS_PAGE_GROUP = "dws_page_group";
+    public static final String KAFKA_DWS_HOME_PAGE_GROUP = "dws_home_detail_pv_uv_group";
+    public static final String KAFKA_DWS_CALLBACK_UV_GROUP = "dws_page_callback_uv_group";
     public static final String KAFKA_DWD_COMMENT_INFO_GROUP = "dwd_comment_info";
     public static final String TOPIC_ODS_LOG = "topic_log";
 

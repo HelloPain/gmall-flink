@@ -12,6 +12,8 @@ import util.FlinkSqlUtil;
  * @Author: PJ, SATAN LOVES YOU FOREVER
  * @Date: 2023/11/10 10:32
  * @Function: 流量域 来源关键词粒度 页面浏览 各窗口轻度聚合
+ * @DataLink: mock -> flume -> kafka -> flink(page split) ->
+ *                  kafka(dwd_traffic_page) -> flink -> doris(dws_traffic_source_keyword_page_view_window)
  */
 public class DwsTrafficSourceKeywordPageViewWindow {
     public static void main(String[] args) throws Exception {
@@ -73,7 +75,8 @@ public class DwsTrafficSourceKeywordPageViewWindow {
         //tableEnv.sqlQuery("select * from win_table").execute().print();
         //tableEnv.toDataStream(winAggTable).print();
 
-        tableEnv.executeSql("CREATE table doris_t(  " +
+        tableEnv.executeSql(
+                "CREATE table doris_t(  " +
                 " stt string, " +
                 " edt string, " +
                 " keyword string, " +
@@ -82,7 +85,7 @@ public class DwsTrafficSourceKeywordPageViewWindow {
                 ")WITH (" +
                 "  'connector' = 'doris', " +
                 "  'fenodes' = 'hadoop102:7030', " +
-                " 'table.identifier' = 'gmall_flink.dws_traffic_source_keyword_page_view_window', " +
+                "  'table.identifier' = 'gmall_flink.dws_traffic_source_keyword_page_view_window', " +
                 "  'username' = 'root', " +
                 "  'password' = '', " +
                 "  'sink.properties.format' = 'json', " +
