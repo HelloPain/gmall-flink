@@ -93,15 +93,17 @@ public class DwsUserUserLoginWindow {
                         Long ts = value.getLong("ts");
                         String curDt = sdf.format(ts);
 
+                        //duplication for uv
                         long todayUv = 0L;
                         if (curDateState.value() == null || !curDateState.value().equals(curDt)) {
                             todayUv = 1L;
                             curDateState.update(curDt);
                         }
 
-                        long backUv = 0L;
-                        if (todayUv != 0) { //only user who visit today can be a back user
-                            if (lastVisitDateState.value() != null && value.getLong("ts") - lastVisitDateState.value() >= loginInterval) {
+                        //only user who visit today can be a back user
+                        if (todayUv != 0) {
+                            long backUv = 0L;
+                            if (lastVisitDateState.value() != null && ts - lastVisitDateState.value() >= loginInterval) {
                                 backUv = 1L;
                             }
                             lastVisitDateState.update(value.getLong("ts"));
