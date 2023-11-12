@@ -40,7 +40,7 @@ public class DwdInterationCommentInfo {
                         "    getRowKey(`data`['appraise'],'dim_base_dic') appraise,\n" +
                         "    `data`['comment_txt'] comment_txt,\n" +
                         "    `data`['create_time'] create_time,\n" +
-                        "  `pt`\n" +//这里+rt没法lookupjoin?
+                        "    `pt`\n" +//这里+rt没法lookupjoin?
                         "from ods_topic_db\n" +
                         "where `database` = 'gmall_flink' " +
                         "and `table` = 'comment_info' " +

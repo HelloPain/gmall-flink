@@ -2,18 +2,23 @@ package app.dwd;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.Table;
+import org.apache.flink.table.api.TableConfig;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import util.Common;
 import util.FlinkSqlUtil;
 
+import java.time.Duration;
 
 
 /**
  * @Author: PJ, SATAN LOVES YOU FOREVER
  * @Date: 2023/11/7 10:46
- * @Function: Read topic_db from kafka,
- * extract `order_info`,`order_detail`,`order_detail_activity`,`order_detail_coupon` data from topic_db,
- * sink to kafka
+ * @Function: 从 Kafka 读取topic_db主题数据，
+ *            关联筛选订单明细表、取消订单数据、订单明细活动关联表、订单明细优惠券关联表四张事实业务表形成取消订单明细表，
+ *            写入 Kafka 对应主题。
+ *            Read topic_db from kafka,
+ *            Extract `order_info` (filter cancel order),`order_detail`,`order_detail_activity`,`order_detail_coupon` data from topic_db, join them,
+ *            Sink to kafka
  * @DataLink: mock -> maxwell -> kafka(topic_db) -> flink table -> kafka(dwd_trade_cancel_detail)
  */
 public class DwdCancelOrderDetail {
@@ -26,8 +31,8 @@ public class DwdCancelOrderDetail {
         //tableEnv.sqlQuery("select * from ods_topic_db").execute().print();
 
         //set TTL for join
-        //TableConfig config = tableEnv.getConfig();
-        //config.setIdleStateRetention(Duration.ofSeconds(10));
+        TableConfig config = tableEnv.getConfig();
+        config.setIdleStateRetention(Duration.ofSeconds(10));
 
         //2.get canceled order info from topic_db
         Table orderInfo = tableEnv.sqlQuery(
@@ -59,7 +64,7 @@ public class DwdCancelOrderDetail {
                    "      and `table` = 'order_info'\n" +
                    "      and `type` = 'update'\n" +
                    "      and `old`['order_status'] is not null\n" +
-                   "      and `data`['order_status'] = '1003';");//TODO: better look up join dim_base_province
+                   "      and `data`['order_status'] = '1003';");
         tableEnv.createTemporaryView("order_cancel_info", orderInfo);
         //tableEnv.sqlQuery("select * from order_cancel_info").execute().print();
 

@@ -9,13 +9,14 @@ public class Common {
     public static final String KAFKA_SERVERS = "hadoop102:9092"; // properties better？
     public static final String CHECKPOINT_PATH = "hdfs://hadoop102:8020/flink-gmall/ck";
     public static final String TOPIC_ODS_DB = "topic_db";
-    public static final String KAFKA_DIM_GROUP = "dim_app";
-    public static final String KAFKA_DWD_LOG_GROUP = "dwd_log_split";
+    public static final String KAFKA_DIM_GROUP = "dim_app_group";
+    public static final String KAFKA_DWD_LOG_GROUP = "dwd_log_split_group";
     public static final String KAFKA_DWS_KEYWORD_SPLIT_GROUP = "dws_keyword_split_group";
     public static final String KAFKA_DWS_HOME_DETAIL_UV_GROUP = "dws_home_detail_pv_uv_group";
-    public static final String KAFKA_DWS_CALLBACK_UV_GROUP = "dws_page_callback_u" +
-            "v_group";
-    public static final String KAFKA_DWD_COMMENT_INFO_GROUP = "dwd_comment_info";
+    public static final String KAFKA_DWS_CALLBACK_UV_GROUP = "dws_page_callback_uv_group";
+    public static final String KAFKA_DWD_COMMENT_INFO_GROUP = "dwd_comment_info_group";
+    public static final String KAFKA_DWD_PAY_SUC_GROUP = "dwd_pay_suc_group";
+
     public static final String TOPIC_ODS_LOG = "topic_log";
 
     public static final String MYSQL_HOST = "hadoop102";
