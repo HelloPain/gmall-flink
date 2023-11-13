@@ -13,8 +13,8 @@ import java.time.Duration;
  * @Author: PJ, SATAN LOVES YOU FOREVER
  * @Date: 2023/11/7 10:46
  * @Function: Read topic_db from kafka,
- *            extract `order_info`,`order_detail`,`order_detail_activity`,`order_detail_coupon` data from topic_db,
- *            sink to kafka
+ * extract `order_info`,`order_detail`,`order_detail_activity`,`order_detail_coupon` data from topic_db,
+ * sink to kafka
  * @DataLink: mock -> maxwell -> kafka(topic_db) -> flink table -> kafka(dwd_trade_order_detail)
  */
 public class DwdTradeOrderDetail {
@@ -72,6 +72,7 @@ public class DwdTradeOrderDetail {
                 "    `data`['order_price'] order_price,\n" +
                 "    `data`['sku_num'] sku_num,\n" +
                 "    `data`['create_time'] create_time,\n" +
+                "    unix_timestamp(`data`['create_time']) ts,\n" +
                 "    `data`['source_type'] source_type,\n" +
                 "    `data`['source_id'] source_id,\n" +
                 "    `data`['split_total_amount'] split_total_amount,\n" +
@@ -160,8 +161,8 @@ public class DwdTradeOrderDetail {
                 "\n" +
                 "      oc.id order_detail_coupon_id,\n" +
                 "      oc.coupon_id,\n" +
-                "      oc.coupon_use_id\n" +
-                "\n" +
+                "      oc.coupon_use_id,\n" +
+                "      od.ts\n" +
                 "from \n" +
                 "      order_info oi join order_detail od on oi.id = od.order_id\n" +
                 "      left join order_detail_activity oa on od.id = oa.order_detail_id\n" +
@@ -210,8 +211,9 @@ public class DwdTradeOrderDetail {
                 "      order_detail_coupon_id string,\n" +
                 "      coupon_id string,\n" +
                 "      coupon_use_id string,\n" +
+                "      ts bigint,\n" +
                 "    PRIMARY KEY (`order_detail_id`) NOT ENFORCED\n" +
-                ")"+ FlinkSqlUtil.getUpsertKafkaProducerDDL(Common.TOPIC_DWD_TRADE_ORDER_DETAIL));
+                ")" + FlinkSqlUtil.getUpsertKafkaProducerDDL(Common.TOPIC_DWD_TRADE_ORDER_DETAIL));
 
         tableEnv.executeSql("insert into dwd_order_add select * from joined");
 
