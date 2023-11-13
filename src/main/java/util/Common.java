@@ -16,7 +16,7 @@ public class Common {
     public static final String KAFKA_DWS_CALLBACK_UV_GROUP = "dws_page_callback_uv_group";
     public static final String KAFKA_DWD_COMMENT_INFO_GROUP = "dwd_comment_info_group";
     public static final String KAFKA_DWD_PAY_SUC_GROUP = "dwd_pay_suc_group";
-
+    public static final String KAFKA_DWD_TRADE_ORDER_DETAIL_GROUP = "dws_keyword_split_group";
     public static final String TOPIC_ODS_LOG = "topic_log";
 
     public static final String MYSQL_HOST = "hadoop102";
