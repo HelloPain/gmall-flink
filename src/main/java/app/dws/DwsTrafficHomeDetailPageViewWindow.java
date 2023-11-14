@@ -117,7 +117,7 @@ public class DwsTrafficHomeDetailPageViewWindow {
                     }
                 })
                 .keyBy(TrafficHomeDetailPageViewBean::getCurDate)
-                .window(TumblingEventTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.seconds(10)))
+                .window(TumblingEventTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.seconds(Common.WINDOW_SIZE_SECOND)))
                 .reduce(new ReduceFunction<TrafficHomeDetailPageViewBean>() {
                     @Override
                     public TrafficHomeDetailPageViewBean reduce(TrafficHomeDetailPageViewBean value1, TrafficHomeDetailPageViewBean value2) throws Exception {

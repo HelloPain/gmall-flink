@@ -61,7 +61,7 @@ public class DwsTradeOrderWindow {
                 })
                 .assignTimestampsAndWatermarks(WatermarkStrategy.<JSONObject>forMonotonousTimestamps()
                         .withTimestampAssigner((SerializableTimestampAssigner<JSONObject>)
-                                (element, recordTimestamp) -> element.getLong("create_time")))
+                                (element, recordTimestamp) -> element.getLong("ts")))
                 //1. key by user id and duplication
                 .keyBy(jsonObj -> jsonObj.getString("user_id"))
                 .flatMap(new RichFlatMapFunction<JSONObject, TradeOrderBean>() {
@@ -101,7 +101,7 @@ public class DwsTradeOrderWindow {
                         return value.getCurDate();
                     }
                 })
-                .window(TumblingEventTimeWindows.of(Time.seconds(10)))
+                .window(TumblingEventTimeWindows.of(Time.seconds(Common.WINDOW_SIZE_SECOND)))
                 //.windowAll(TumblingEventTimeWindows.of(Time.seconds(10)))
                 .reduce(new ReduceFunction<TradeOrderBean>() {
                             @Override

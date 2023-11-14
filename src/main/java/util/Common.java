@@ -6,6 +6,7 @@ package util;
  */
 public class Common {
     public static final int PARALLELISM = 3;
+    public static final int WINDOW_SIZE_SECOND = 10;
     public static final String KAFKA_SERVERS = "hadoop102:9092"; // properties better？
     public static final String CHECKPOINT_PATH = "hdfs://hadoop102:8020/flink-gmall/ck";
     public static final String TOPIC_ODS_DB = "topic_db";
@@ -17,6 +18,7 @@ public class Common {
     public static final String KAFKA_DWD_COMMENT_INFO_GROUP = "dwd_comment_info_group";
     public static final String KAFKA_DWD_PAY_SUC_GROUP = "dwd_pay_suc_group";
     public static final String KAFKA_DWD_TRADE_ORDER_DETAIL_GROUP = "dws_keyword_split_group";
+    public static final String KAFKA_DWD_CARD_ADD_GROUP = "dwd_cart_add_group";
     public static final String TOPIC_ODS_LOG = "topic_log";
 
     public static final String MYSQL_HOST = "hadoop102";
