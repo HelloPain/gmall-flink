@@ -27,7 +27,7 @@ import util.KafkaUtil;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import util.WindowUtil;
 
-import java.text.SimpleDateFormat;
+
 
 /**
  * @Author: PJ, SATAN LOVES YOU FOREVER
@@ -46,6 +46,7 @@ public class DwsTradeCartAddUuWindow {
         DataStreamSource<String> kafkaDs = env.fromSource(KafkaUtil.getKafkaSource(
                         Common.TOPIC_DWD_TRADE_CART_ADD, Common.KAFKA_DWD_CARD_ADD_GROUP),
                 WatermarkStrategy.noWatermarks(), "kafkaSource");
+        //env.setRestartStrategy(RestartStrategies.fixedDelayRestart(1, 1000L));
 
         kafkaDs.flatMap(new FlatMapFunction<String, JSONObject>() {
                     @Override
