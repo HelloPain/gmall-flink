@@ -171,49 +171,50 @@ public class DwdTradeOrderDetail {
         //tableEnv.sqlQuery("select * from joined").execute().print();
 
         //4.sink to kafka
-        tableEnv.executeSql("create table dwd_order_add(\n" +
-                "      order_detail_id string,\n" +
-                "      order_id string,\n" +
-                "      consignee string,\n" +
-                "      consignee_tel string,\n" +
-                "      total_amount string,\n" +
-                "      order_status string,\n" +
-                "      user_id string,\n" +
-                "      payment_way string,\n" +
-                "      delivery_address string,\n" +
-                "      order_comment string,\n" +
-                "      out_trade_no string,\n" +
-                "      trade_body string,\n" +
-                "      create_time string,\n" +
-                "      process_status string,\n" +
-                "      tracking_no string,\n" +
-                "      parent_order_id string,\n" +
-                "      province_id string,\n" +
-                "      activity_reduce_amount string,\n" +
-                "      coupon_reduce_amount string,\n" +
-                "      original_total_amount string,\n" +
-                "      feight_fee string,\n" +
-                "      feight_fee_reduce string,\n" +
-                "      refundable_time string,\n" +
-                "      sku_id string,\n" +
-                "      sku_name string,\n" +
-                "      img_url string,\n" +
-                "      order_price string,\n" +
-                "      sku_num string,\n" +
-                "      source_type string,\n" +
-                "      source_id string,\n" +
-                "      split_total_amount string,\n" +
-                "      split_activity_amount string,\n" +
-                "      split_coupon_amount string,\n" +
-                "      order_detail_activity_id string,\n" +
-                "      activity_id string,\n" +
-                "      activity_rule_id string,\n" +
-                "      order_detail_coupon_id string,\n" +
-                "      coupon_id string,\n" +
-                "      coupon_use_id string,\n" +
-                "      ts bigint,\n" +
-                "    PRIMARY KEY (`order_detail_id`) NOT ENFORCED\n" +
-                ")" + FlinkSqlUtil.getUpsertKafkaProducerDDL(Common.TOPIC_DWD_TRADE_ORDER_DETAIL));
+        tableEnv.executeSql(
+                "create table dwd_order_add(\n" +
+                        "      order_detail_id string,\n" +
+                        "      order_id string,\n" +
+                        "      consignee string,\n" +
+                        "      consignee_tel string,\n" +
+                        "      total_amount string,\n" +
+                        "      order_status string,\n" +
+                        "      user_id string,\n" +
+                        "      payment_way string,\n" +
+                        "      delivery_address string,\n" +
+                        "      order_comment string,\n" +
+                        "      out_trade_no string,\n" +
+                        "      trade_body string,\n" +
+                        "      create_time string,\n" +
+                        "      process_status string,\n" +
+                        "      tracking_no string,\n" +
+                        "      parent_order_id string,\n" +
+                        "      province_id string,\n" +
+                        "      activity_reduce_amount string,\n" +
+                        "      coupon_reduce_amount string,\n" +
+                        "      original_total_amount string,\n" +
+                        "      feight_fee string,\n" +
+                        "      feight_fee_reduce string,\n" +
+                        "      refundable_time string,\n" +
+                        "      sku_id string,\n" +
+                        "      sku_name string,\n" +
+                        "      img_url string,\n" +
+                        "      order_price string,\n" +
+                        "      sku_num string,\n" +
+                        "      source_type string,\n" +
+                        "      source_id string,\n" +
+                        "      split_total_amount string,\n" +
+                        "      split_activity_amount string,\n" +
+                        "      split_coupon_amount string,\n" +
+                        "      order_detail_activity_id string,\n" +
+                        "      activity_id string,\n" +
+                        "      activity_rule_id string,\n" +
+                        "      order_detail_coupon_id string,\n" +
+                        "      coupon_id string,\n" +
+                        "      coupon_use_id string,\n" +
+                        "      ts bigint,\n" +
+                        "    PRIMARY KEY (`order_detail_id`) NOT ENFORCED\n" +
+                        ")" + FlinkSqlUtil.getUpsertKafkaProducerDDL(Common.TOPIC_DWD_TRADE_ORDER_DETAIL));
 
         tableEnv.executeSql("insert into dwd_order_add select * from joined");
 
