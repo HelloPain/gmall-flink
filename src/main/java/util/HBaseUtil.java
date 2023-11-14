@@ -2,9 +2,12 @@ package util;
 
 import com.alibaba.fastjson.JSONObject;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
+import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -88,8 +91,8 @@ public class HBaseUtil {
         table.close();
     }
 
-    public static byte[][] getSplitKeys(String sinkExtend){
-        if(sinkExtend == null || sinkExtend.length() == 0){
+    public static byte[][] getSplitKeys(String sinkExtend) {
+        if (sinkExtend == null || sinkExtend.length() == 0) {
             return null;
         }
         String[] splits = sinkExtend.split(",");//00|,01|,02|
@@ -98,5 +101,42 @@ public class HBaseUtil {
             bytes[i] = splits[i].getBytes();
         }
         return bytes;
+    }
+
+    public static JSONObject getJsonData(Connection conn, String namespace, String tableName, String rowkey) throws IOException {
+        Table table = conn.getTable(TableName.valueOf(namespace + ":" + tableName));
+        Get get = new Get(rowkey.getBytes());
+        Result result = table.get(get);
+        JSONObject jsonObject = new JSONObject();
+        for (Cell cell : result.rawCells()) {
+            jsonObject.put(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
+        }
+        table.close();
+        return jsonObject;
+    }
+
+    public static void main(String[] args) throws IOException {
+        Connection conn = getConnection();
+        long t1 = System.currentTimeMillis();
+        System.out.println(getJsonData(conn, "gmall_flink", "dim_base_trademark", "01_11"));
+        long t2 = System.currentTimeMillis();
+        System.out.println("t2-t1 = " + (t2 - t1));//1227
+
+        System.out.println(getJsonData(conn, "gmall_flink", "dim_base_trademark", "01_11"));
+        long t3 = System.currentTimeMillis();
+        System.out.println("t3-t2 = " + (t3 - t2));//46
+
+        Jedis jedis = JedisUtil.getJedis();
+        System.out.println(DimRedisUtil.getDimInfoFromRedisOrHbase(conn, jedis, "dim_base_trademark", "01_11"));
+        long t4 = System.currentTimeMillis();
+        System.out.println("t4-t3 = " + (t4 - t3));
+
+        System.out.println(DimRedisUtil.getDimInfoFromRedisOrHbase(conn, jedis, "dim_base_trademark", "01_11"));
+        long t5 = System.currentTimeMillis();
+        System.out.println("t5-t4 = " + (t5 - t4));
+
+        System.out.println(DimRedisUtil.getDimInfoFromRedisOrHbase(conn, jedis, "dim_base_trademark", "01_11"));
+        long t6 = System.currentTimeMillis();
+        System.out.println("t6-t5 = " + (t6 - t5));
     }
 }

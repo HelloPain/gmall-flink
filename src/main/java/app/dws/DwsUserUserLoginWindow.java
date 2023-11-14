@@ -121,7 +121,7 @@ public class DwsUserUserLoginWindow {
                 })
                 //4.key by curDate, window by 10s, reduce
                 .keyBy((KeySelector<UserLoginBean, String>) UserLoginBean::getCurDate)
-                .window(TumblingEventTimeWindows.of(Time.seconds(Common.WINDOW_SIZE_SECOND)))
+                .window(TumblingEventTimeWindows.of(Time.seconds(Common.WINDOW_SIZE_SECONDS)))
                 .reduce(new ReduceFunction<UserLoginBean>() {
                     @Override
                     public UserLoginBean reduce(UserLoginBean value1, UserLoginBean value2) throws Exception {

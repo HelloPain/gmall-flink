@@ -4,9 +4,12 @@ package app.dim.func;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
+import redis.clients.jedis.Jedis;
 import util.Common;
+import util.DimRedisUtil;
 import util.HBaseUtil;
 import org.apache.hadoop.hbase.client.*;
+import util.JedisUtil;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,10 +23,12 @@ import java.util.stream.Collectors;
 public class DimSinkFunction extends RichSinkFunction<JSONObject> {
 
     private Connection conn;
+    private Jedis jedis;
 
     @Override
     public void open(Configuration parameters) throws Exception {
         conn = HBaseUtil.getConnection();
+        jedis = JedisUtil.getJedis();
     }
 
     @Override
@@ -40,7 +45,11 @@ public class DimSinkFunction extends RichSinkFunction<JSONObject> {
         }
         if ("delete".equals(type)) {
             HBaseUtil.deleteData(conn, Common.HBASE_NAMESPACE, hbaseTableName, rowkey);
+            DimRedisUtil.deleteDimInfoFromRedis(jedis, hbaseTableName, rowkey);
         } else {
+            if("update".equals(type)){
+                DimRedisUtil.setDimInfoFromRedis(data, jedis, hbaseTableName, rowkey);
+            }
             HBaseUtil.putJsonData(conn, Common.HBASE_NAMESPACE, hbaseTableName, rowkey,
                     value.getString("sink_column_family"), data);
         }

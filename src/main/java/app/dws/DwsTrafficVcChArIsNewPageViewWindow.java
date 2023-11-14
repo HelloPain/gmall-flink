@@ -133,7 +133,7 @@ public class DwsTrafficVcChArIsNewPageViewWindow {
                         return Tuple5.of(value.getVc(), value.getCh(), value.getAr(), value.getIsNew(), value.getCurDate());
                     }
                 })
-                .window(TumblingEventTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.seconds(Common.WINDOW_SIZE_SECOND)))
+                .window(TumblingEventTimeWindows.of(org.apache.flink.streaming.api.windowing.time.Time.seconds(Common.WINDOW_SIZE_SECONDS)))
                 .reduce(new ReduceFunction<TrafficPageViewBean>() {
                     @Override
                     public TrafficPageViewBean reduce(TrafficPageViewBean value1, TrafficPageViewBean value2) throws Exception {

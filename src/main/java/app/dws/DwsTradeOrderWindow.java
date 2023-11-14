@@ -9,7 +9,6 @@ import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
-import org.apache.flink.api.common.state.StateTtlConfig;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.api.java.functions.KeySelector;
@@ -17,7 +16,6 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.runtime.state.hashmap.HashMapStateBackend;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction;
 import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
 import org.apache.flink.streaming.api.windowing.time.Time;
@@ -29,9 +27,6 @@ import util.Common;
 import util.DorisUtil;
 import util.KafkaUtil;
 import util.WindowUtil;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 /**
  * @Author: PJ, SATAN LOVES YOU FOREVER
@@ -101,7 +96,7 @@ public class DwsTradeOrderWindow {
                         return value.getCurDate();
                     }
                 })
-                .window(TumblingEventTimeWindows.of(Time.seconds(Common.WINDOW_SIZE_SECOND)))
+                .window(TumblingEventTimeWindows.of(Time.seconds(Common.WINDOW_SIZE_SECONDS)))
                 //.windowAll(TumblingEventTimeWindows.of(Time.seconds(10)))
                 .reduce(new ReduceFunction<TradeOrderBean>() {
                             @Override
