@@ -7,7 +7,8 @@ package util;
 public class Common {
     public static final int PARALLELISM = 3;
     public static final int WINDOW_SIZE_SECONDS = 10;
-
+    public static final int HBASE_POOL_MAX_IDLE = 5;
+    public static final int HBASE_POOL_MAX_ACTIVE = 10;
     public static final int REDIS_EXPIRE_SECONDS = 60 * 60 * 24;
     public static final String KAFKA_SERVERS = "hadoop102:9092"; // properties better？
     public static final String CHECKPOINT_PATH = "hdfs://hadoop102:8020/flink-gmall/ck";

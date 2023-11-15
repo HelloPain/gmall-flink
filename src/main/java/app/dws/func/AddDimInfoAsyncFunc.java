@@ -116,4 +116,9 @@ public abstract class AddDimInfoAsyncFunc<IN, OUT> extends RichAsyncFunction<IN,
             }
         });
     }
+
+    @Override
+    public void timeout(IN input, ResultFuture<OUT> resultFuture) throws Exception {
+        System.out.println("TimeOut>>>>>>" + input);
+    }
 }
