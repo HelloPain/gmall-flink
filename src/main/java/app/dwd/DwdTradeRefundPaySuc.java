@@ -55,7 +55,7 @@ public class DwdTradeRefundPaySuc {
                         "data['payment_type'] payment_type,\n" +
                         "data['callback_time'] callback_time,\n" +
                         "data['total_amount'] total_amount,\n" +
-                        "proc_time,\n" +
+                        "pt,\n" +
                         "ts\n" +
                 "from ods_topic_db\n" +
                         "where `database` = 'gmall_flink'\n" +
@@ -65,6 +65,7 @@ public class DwdTradeRefundPaySuc {
  //                       "and `old`['refund_status'] is not null"
         );
         tableEnv.createTemporaryView("refund_payment", refundPayment);
+        //tableEnv.sqlQuery("select * from refund_payment").execute().print();
 
 
         tableEnv.createTemporarySystemFunction("getRowKey", GetRowKeyUDF.class);
@@ -125,7 +126,7 @@ public class DwdTradeRefundPaySuc {
                 "join dim_base_dic FOR SYSTEM_TIME AS OF ord.pt as reason_dic\n" +
                 "on ord.refund_reason_type = reason_dic.rowkey\n");
         tableEnv.createTemporaryView("joined", resultTable);
-        //tableEnv.sqlQuery("select * from joined").execute().print();
+        tableEnv.sqlQuery("select * from joined").execute().print();
 
         //4.sink to kafka
         tableEnv.executeSql(
