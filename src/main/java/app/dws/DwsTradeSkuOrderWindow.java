@@ -107,64 +107,64 @@ public class DwsTradeSkuOrderWindow {
                         })
                         .assignTimestampsAndWatermarks(WatermarkStrategy.<JSONObject>forMonotonousTimestamps()
                                 .withTimestampAssigner((SerializableTimestampAssigner<JSONObject>)
-                                        (element, recordTimestamp) -> element.getLong("ts")))
+                                        (element, recordTimestamp) -> element.getLong("ts") * 1000L))
                         .keyBy(jsonObj -> jsonObj.getString("order_detail_id"))
-                        .flatMap(new RichFlatMapFunction<JSONObject, TradeSkuOrderBean>() {
-                            ValueState<Boolean> hasState;
+                .flatMap(new RichFlatMapFunction<JSONObject, TradeSkuOrderBean>() {
+                    ValueState<Boolean> hasState;
 
-                            @Override
-                            public void open(Configuration parameters) throws Exception {
-                                ValueStateDescriptor<Boolean> stateDescriptor = new ValueStateDescriptor<>("state", Boolean.class);
-                                stateDescriptor.enableTimeToLive(StateTtlConfig.newBuilder(
-                                        org.apache.flink.api.common.time.Time.seconds(duplicationTTLSec)).build());
-                                hasState = getRuntimeContext().getState(stateDescriptor);
+                    @Override
+                    public void open(Configuration parameters) throws Exception {
+                        ValueStateDescriptor<Boolean> stateDescriptor = new ValueStateDescriptor<>("state", Boolean.class);
+                        stateDescriptor.enableTimeToLive(StateTtlConfig.newBuilder(
+                                org.apache.flink.api.common.time.Time.seconds(duplicationTTLSec)).build());
+                        hasState = getRuntimeContext().getState(stateDescriptor);
+                    }
+
+                    @Override
+                    public void flatMap(JSONObject value, Collector<TradeSkuOrderBean> out) throws Exception {
+                        if (hasState.value() == null) {
+                            hasState.update(true);
+                            BigDecimal splitTotalAmount = value.getBigDecimal("split_total_amount") == null ?
+                                    BigDecimal.ZERO : value.getBigDecimal("split_total_amount");
+                            BigDecimal splitActivityAmount = value.getBigDecimal("split_activity_amount") == null ?
+                                    BigDecimal.ZERO : value.getBigDecimal("split_activity_amount");
+                            BigDecimal splitCouponAmount = value.getBigDecimal("split_coupon_amount") == null ?
+                                    BigDecimal.ZERO : value.getBigDecimal("split_coupon_amount");
+                            BigDecimal splitOriginalAmount = BigDecimal.ZERO;
+                            if (value.getBigDecimal("order_price") != null && value.getBigDecimal("sku_num") != null) {
+                                splitOriginalAmount = value.getBigDecimal("order_price").multiply(value.getBigDecimal("sku_num"));
                             }
-
+                            out.collect(TradeSkuOrderBean.builder()
+                                    .skuId(value.getString("sku_id"))
+                                    .skuName(value.getString("sku_name"))
+                                    .originalAmount(splitOriginalAmount)
+                                    .activityAmount(splitActivityAmount)
+                                    .couponAmount(splitCouponAmount)
+                                    .orderAmount(splitTotalAmount)
+                                    .curDate(value.getString("create_time").split(" ")[0])
+                                    .build());
+                        }
+                    }
+                })
+                .keyBy(TradeSkuOrderBean::getSkuId)
+                .window(TumblingEventTimeWindows.of(Time.seconds(Common.WINDOW_SIZE_SECONDS)))
+                .reduce(new ReduceFunction<TradeSkuOrderBean>() {
                             @Override
-                            public void flatMap(JSONObject value, Collector<TradeSkuOrderBean> out) throws Exception {
-                                if (hasState.value() == null) {
-                                    hasState.update(true);
-                                    BigDecimal splitTotalAmount = value.getBigDecimal("split_total_amount") == null ?
-                                            BigDecimal.ZERO : value.getBigDecimal("split_total_amount");
-                                    BigDecimal splitActivityAmount = value.getBigDecimal("split_activity_amount") == null ?
-                                            BigDecimal.ZERO : value.getBigDecimal("split_activity_amount");
-                                    BigDecimal splitCouponAmount = value.getBigDecimal("split_coupon_amount") == null ?
-                                            BigDecimal.ZERO : value.getBigDecimal("split_coupon_amount");
-                                    BigDecimal splitOriginalAmount = BigDecimal.ZERO;
-                                    if (value.getBigDecimal("order_price") != null && value.getBigDecimal("sku_num") != null) {
-                                        splitOriginalAmount = value.getBigDecimal("order_price").multiply(value.getBigDecimal("sku_num"));
-                                    }
-                                    out.collect(TradeSkuOrderBean.builder()
-                                            .skuId(value.getString("sku_id"))
-                                            .skuName(value.getString("sku_name"))
-                                            .originalAmount(splitOriginalAmount)
-                                            .activityAmount(splitActivityAmount)
-                                            .couponAmount(splitCouponAmount)
-                                            .orderAmount(splitTotalAmount)
-                                            .curDate(value.getString("create_time").split(" ")[0])
-                                            .build());
-                                }
+                            public TradeSkuOrderBean reduce(TradeSkuOrderBean value1, TradeSkuOrderBean value2) throws Exception {
+                                value1.setOriginalAmount(value1.getOriginalAmount().add(value2.getOriginalAmount()));
+                                value1.setOrderAmount(value1.getOrderAmount().add(value2.getOrderAmount()));
+                                value1.setActivityAmount(value1.getActivityAmount().add(value2.getActivityAmount()));
+                                value1.setCouponAmount(value1.getCouponAmount().add(value2.getCouponAmount()));
+                                return value1;
+                            }
+                        },
+                        new WindowFunction<TradeSkuOrderBean, TradeSkuOrderBean, String, TimeWindow>() {
+                            @Override
+                            public void apply(String s, TimeWindow window, Iterable<TradeSkuOrderBean> input, Collector<TradeSkuOrderBean> out) throws Exception {
+                                WindowUtil.<TradeSkuOrderBean>addWindowInfo(window, input, out);
                             }
                         })
-                        .keyBy(TradeSkuOrderBean::getSkuId)
-                        .window(TumblingEventTimeWindows.of(Time.seconds(Common.WINDOW_SIZE_SECONDS)))
-                        .reduce(new ReduceFunction<TradeSkuOrderBean>() {
-                                    @Override
-                                    public TradeSkuOrderBean reduce(TradeSkuOrderBean value1, TradeSkuOrderBean value2) throws Exception {
-                                        value1.setOriginalAmount(value1.getOriginalAmount().add(value2.getOriginalAmount()));
-                                        value1.setOrderAmount(value1.getOrderAmount().add(value2.getOrderAmount()));
-                                        value1.setActivityAmount(value1.getActivityAmount().add(value2.getActivityAmount()));
-                                        value1.setCouponAmount(value1.getCouponAmount().add(value2.getCouponAmount()));
-                                        return value1;
-                                    }
-                                },
-                                new WindowFunction<TradeSkuOrderBean, TradeSkuOrderBean, String, TimeWindow>() {
-                                    @Override
-                                    public void apply(String s, TimeWindow window, Iterable<TradeSkuOrderBean> input, Collector<TradeSkuOrderBean> out) throws Exception {
-                                        WindowUtil.<TradeSkuOrderBean>addWindowInfo(window, input, out);
-                                    }
-                                })
-                        .connect(broadcastMysqlDs);
+                .connect(broadcastMysqlDs);
 
 
         broadcastDs.process(new AddDimFromRedisProcessFunc<TradeSkuOrderBean, TradeSkuOrderBean>(

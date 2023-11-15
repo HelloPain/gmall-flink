@@ -60,7 +60,7 @@ public class DwsTradeSkuOrderWindowAsync {
                 })
                 .assignTimestampsAndWatermarks(WatermarkStrategy.<JSONObject>forMonotonousTimestamps()
                         .withTimestampAssigner((SerializableTimestampAssigner<JSONObject>)
-                                (element, recordTimestamp) -> element.getLong("ts")))
+                                (element, recordTimestamp) -> element.getLong("ts") * 1000L))
                 .keyBy(jsonObj -> jsonObj.getString("order_detail_id"))
                 .flatMap(new RichFlatMapFunction<JSONObject, TradeSkuOrderBean>() {
                     ValueState<Boolean> hasState;
