@@ -26,6 +26,11 @@ public class DimCreateTableMapFunction extends RichMapFunction<String, TableProc
     }
 
     @Override
+    public void close() throws Exception {
+        hbaseConn.close();
+    }
+
+    @Override
     public TableProcess map(String value) throws IOException {
         JSONObject obj = JSON.parseObject(value);
         String op = obj.getString("op");

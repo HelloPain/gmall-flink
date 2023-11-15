@@ -30,7 +30,11 @@ public class DimSinkFunction extends RichSinkFunction<JSONObject> {
         conn = HBaseUtil.getConnection();
         jedis = JedisUtil.getJedis();
     }
-
+    @Override
+    public void close() throws Exception {
+        conn.close();
+        jedis.close();
+    }
 
 
     @Override
@@ -58,10 +62,7 @@ public class DimSinkFunction extends RichSinkFunction<JSONObject> {
     }
 
 
-    @Override
-    public void close() throws Exception {
-        conn.close();
-    }
+
 
     public static void main(String[] args) {
         System.out.println(HBaseUtil.getRowKey("1001", "00|,01|,02|"));
