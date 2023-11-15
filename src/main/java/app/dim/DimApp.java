@@ -15,6 +15,7 @@ import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.runtime.state.hashmap.HashMapStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.datastream.BroadcastStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -39,15 +40,17 @@ public class DimApp {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(Common.PARALLELISM);//=kafka partition
 
-        System.setProperty("HADOOP_USER_NAME", "pj");
-        CheckpointConfig checkpointConfig = env.getCheckpointConfig();
-        checkpointConfig.setCheckpointTimeout(30000L);
-        checkpointConfig.setCheckpointStorage(Common.CHECKPOINT_PATH);
-        checkpointConfig.enableExternalizedCheckpoints(
-                CheckpointConfig.ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION);
-        checkpointConfig.setMinPauseBetweenCheckpoints(10000L);
-        env.setRestartStrategy(RestartStrategies.fixedDelayRestart(100, 2000L));
-        env.enableCheckpointing(TimeUnit.SECONDS.toMillis(3), CheckpointingMode.EXACTLY_ONCE);
+        //System.setProperty("HADOOP_USER_NAME", "pj");
+//        CheckpointConfig checkpointConfig = env.getCheckpointConfig();
+//        checkpointConfig.setCheckpointTimeout(30000L);
+//        checkpointConfig.setCheckpointStorage(Common.CHECKPOINT_PATH);
+//        checkpointConfig.enableExternalizedCheckpoints(
+//                CheckpointConfig.ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION);
+//        checkpointConfig.setMinPauseBetweenCheckpoints(10000L);
+//        env.setRestartStrategy(RestartStrategies.fixedDelayRestart(10, 2000L));
+//        env.enableCheckpointing(TimeUnit.SECONDS.toMillis(3), CheckpointingMode.EXACTLY_ONCE);
+        env.enableCheckpointing(10000L);
+        env.setStateBackend(new HashMapStateBackend());
 
         //1.read topic_db data from kafka
         KafkaSource<String> kafkaSource = KafkaUtil.getKafkaSource(Common.TOPIC_ODS_DB, Common.KAFKA_DIM_GROUP);

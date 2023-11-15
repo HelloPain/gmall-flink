@@ -26,7 +26,7 @@ public class JedisUtil {
     }
 
     public static Jedis getJedis(){
-        System.out.println("~~~获取Jedis客户端~~~");
+        //System.out.println("~~~获取Jedis客户端~~~");
         Jedis jedis = jedisPool.getResource();
         return jedis;
     }

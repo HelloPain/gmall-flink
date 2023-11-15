@@ -12,6 +12,8 @@ import redis.clients.jedis.Jedis;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @Author: PJ, SATAN LOVES YOU FOREVER
@@ -113,6 +115,18 @@ public class HBaseUtil {
         }
         table.close();
         return jsonObject;
+    }
+
+    //sinkExtend: 00|,01|,02|
+    //rowKey: 1001 1002...
+    //rowKey: 00_1000 01_1001 02_1002 02|1003
+    public static String getRowKey(String rowKey, String sinkExtend) {
+        String[] pks = sinkExtend.split(",");
+        List<String> final_pks = Arrays.stream(pks)
+                .map(t -> t.replace("|", "_")) //也可以获得|的asc值，然后-1
+                .collect(Collectors.toList());
+        final_pks.add(pks[pks.length - 1]); //00_,01_,02_,02|
+        return final_pks.get(rowKey.hashCode() % final_pks.size()) + rowKey;
     }
 
     public static void main(String[] args) throws IOException {

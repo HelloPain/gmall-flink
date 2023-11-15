@@ -45,20 +45,17 @@ public class GetRowKeyUDF extends ScalarFunction {
                     throw new RuntimeException(e);
                 } catch (InvocationTargetException e) {
                     throw new RuntimeException(e);
+                } catch (NoSuchFieldException e) {
+                    throw new RuntimeException(e);
                 }
             }
-        },1000*60*60L);//check if mysql has changed every delay, update sinkExtends
+        },10000L,10000L);//check if mysql has changed every delay, update sinkExtends
     }
 
     public String eval(String rowKey, String tableName) {
         String sinkExtend = sinkExtends.get(tableName);
         if(sinkExtend == null) return rowKey;
-        String[] pks = sinkExtend.split(",");
-        List<String> final_pks = Arrays.stream(pks)
-                .map(t -> t.replace("|", "_")) //也可以替换成  |的asc值-1
-                .collect(Collectors.toList());
-        final_pks.add(pks[pks.length - 1]); //00_,01_,02_,02|
-        return final_pks.get(rowKey.hashCode() % final_pks.size()) + rowKey;
+        return HBaseUtil.getRowKey(rowKey, sinkExtend);
     }
 
 }

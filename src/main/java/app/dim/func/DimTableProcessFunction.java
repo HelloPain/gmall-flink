@@ -36,8 +36,7 @@ public class DimTableProcessFunction extends BroadcastProcessFunction<JSONObject
 
     @Override
     public void open(Configuration parameters) throws Exception, IOException {
-        //第一次启动的时候，有可能state中没有数据，可以从mysql先加载数据到state中
-        //为了冷启动？
+        //冷启动: 第一次启动的时候，有可能state中没有数据，可以从mysql先加载数据到state中
         Connection mysqlConn = DriverManager.getConnection(Common.MYSQL_URL, Common.MYSQL_USERNAME, Common.MYSQL_PASSWORD);
         org.apache.hadoop.hbase.client.Connection hbaseConn = HBaseUtil.getConnection();
         List<TableProcess> tableProcesses = queryList(
