@@ -92,23 +92,23 @@ public class DwsTradeSkuOrderWindow {
 
 
         KafkaSource<String> kafkaSource = KafkaUtil.getKafkaSource(Common.TOPIC_DWD_TRADE_ORDER_DETAIL, Common.KAFKA_DWD_TRADE_ORDER_DETAIL_GROUP);
-        BroadcastConnectedStream<TradeSkuOrderBean, TableProcess> broadcastDs =
-                env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "kafka_source")
-                        .flatMap(new FlatMapFunction<String, JSONObject>() {
-                            @Override
-                            public void flatMap(String value, Collector<JSONObject> out) throws Exception {
-                                try {
-                                    JSONObject jsonObj = JSONObject.parseObject(value);
-                                    out.collect(jsonObj);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        })
-                        .assignTimestampsAndWatermarks(WatermarkStrategy.<JSONObject>forMonotonousTimestamps()
-                                .withTimestampAssigner((SerializableTimestampAssigner<JSONObject>)
-                                        (element, recordTimestamp) -> element.getLong("ts") * 1000L))
-                        .keyBy(jsonObj -> jsonObj.getString("order_detail_id"))
+
+        env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "kafka_source")
+                .flatMap(new FlatMapFunction<String, JSONObject>() {
+                    @Override
+                    public void flatMap(String value, Collector<JSONObject> out) throws Exception {
+                        try {
+                            JSONObject jsonObj = JSONObject.parseObject(value);
+                            out.collect(jsonObj);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                })
+                .assignTimestampsAndWatermarks(WatermarkStrategy.<JSONObject>forMonotonousTimestamps()
+                        .withTimestampAssigner((SerializableTimestampAssigner<JSONObject>)
+                                (element, recordTimestamp) -> element.getLong("ts") * 1000L))
+                .keyBy(jsonObj -> jsonObj.getString("order_detail_id"))
                 .flatMap(new RichFlatMapFunction<JSONObject, TradeSkuOrderBean>() {
                     ValueState<Boolean> hasState;
 
@@ -164,10 +164,8 @@ public class DwsTradeSkuOrderWindow {
                                 WindowUtil.<TradeSkuOrderBean>addWindowInfo(window, input, out);
                             }
                         })
-                .connect(broadcastMysqlDs);
-
-
-        broadcastDs.process(new AddDimFromRedisProcessFunc<TradeSkuOrderBean, TradeSkuOrderBean>(
+                .connect(broadcastMysqlDs)
+                .process(new AddDimFromRedisProcessFunc<TradeSkuOrderBean, TradeSkuOrderBean>(
                         mapStateDescriptor, "dim_sku_info") {
                     @Override
                     public String getDimPk(TradeSkuOrderBean value) {
