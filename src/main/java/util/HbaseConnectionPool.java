@@ -8,13 +8,13 @@ import org.apache.hadoop.hbase.client.Connection;
  * @Date: 2023/11/15 20:24
  * @Function:
  */
-public class HbaseConnectionPool {
+public class HbaseConnectionPool implements AutoCloseable{
     static GenericObjectPool<Connection> hbasePool;
     static {
         HbaseConnectionFactory hbaseFactory = new HbaseConnectionFactory();
         hbasePool = new GenericObjectPool<>(hbaseFactory);
-        hbasePool.setMaxIdle(Common.HBASE_POOL_MAX_IDLE); // 设置最大空闲对象数为 5
-        hbasePool.setMaxTotal(Common.HBASE_POOL_MAX_ACTIVE); // 设置最大活跃对象数为 10
+        hbasePool.setMaxIdle(Common.HBASE_POOL_MAX_IDLE);
+        hbasePool.setMaxTotal(Common.HBASE_POOL_MAX_ACTIVE);
     }
 
     public static Connection getConnection() throws Exception {
@@ -23,5 +23,10 @@ public class HbaseConnectionPool {
 
     public static void returnConnection(Connection connection) {
         hbasePool.returnObject(connection);
+    }
+
+    @Override
+    public void close() throws Exception {
+        hbasePool.close();
     }
 }

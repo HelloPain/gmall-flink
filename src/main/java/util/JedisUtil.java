@@ -11,7 +11,7 @@ import redis.clients.jedis.JedisPoolConfig;
  * @Date: 2023/11/14 13:51
  * @Function:
  */
-public class JedisUtil {
+public class JedisUtil implements AutoCloseable {
 
     private static final JedisPool jedisPool;
 
@@ -42,6 +42,11 @@ public class JedisUtil {
         Jedis jedis = getJedis();
         String pong = jedis.ping();
         System.out.println(pong);
+    }
+
+    @Override
+    public void close() throws Exception {
+        jedisPool.close();
     }
 }
 
