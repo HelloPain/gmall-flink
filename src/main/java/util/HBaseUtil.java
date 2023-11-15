@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -23,6 +24,11 @@ public class HBaseUtil {
     public static Connection getConnection() throws IOException {
         Configuration conf = HBaseConfiguration.create();//load hbase-site.xml
         return ConnectionFactory.createConnection(conf);
+    }
+
+    public static AsyncConnection getAsyncConnection() throws ExecutionException, InterruptedException {
+        Configuration configuration = HBaseConfiguration.create();
+        return ConnectionFactory.createAsyncConnection(configuration).get();
     }
 
     public static void createTable(Connection conn, String namespace, String tableName,
@@ -114,6 +120,17 @@ public class HBaseUtil {
             jsonObject.put(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
         }
         table.close();
+        return jsonObject;
+    }
+
+    public static JSONObject getJsonDataAsync(AsyncConnection conn, String namespace, String tableName, String rowkey) throws IOException, ExecutionException, InterruptedException {
+        AsyncTable<AdvancedScanResultConsumer> asyncTable = conn.getTable(TableName.valueOf(namespace + ":" + tableName));
+        Get get = new Get(rowkey.getBytes());
+        Result result = asyncTable.get(get).get();
+        JSONObject jsonObject = new JSONObject();
+        for (Cell cell : result.rawCells()) {
+            jsonObject.put(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
+        }
         return jsonObject;
     }
 

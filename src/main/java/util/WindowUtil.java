@@ -18,8 +18,8 @@ public class WindowUtil {
                                                                 Iterable<T> input,
                                                                 Collector<T> out) {
         for (T t : input) {
-            t.setStt(sdf.format(window.getStart()));
-            t.setEdt(sdf.format(window.getEnd()));
+            t.setStt(DateFormatUtil.toYmdHms(window.getStart()));
+            t.setEdt(DateFormatUtil.toYmdHms(window.getEnd()));
             out.collect(t);
         }
     }

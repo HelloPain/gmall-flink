@@ -1,5 +1,7 @@
 package util;
 
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -11,7 +13,7 @@ import redis.clients.jedis.JedisPoolConfig;
  */
 public class JedisUtil {
 
-    private static JedisPool jedisPool;
+    private static final JedisPool jedisPool;
 
     static {
         JedisPoolConfig poolConfig = new JedisPoolConfig();
@@ -25,10 +27,15 @@ public class JedisUtil {
         jedisPool = new JedisPool(poolConfig,"hadoop102",6379,10000);
     }
 
+    public static StatefulRedisConnection<String, String> getAsyncRedisConnection() {
+        // Get async connection to redis
+        RedisClient redisClient = RedisClient.create("redis://hadoop102:6379");
+        return redisClient.connect();
+    }
+
     public static Jedis getJedis(){
         //System.out.println("~~~获取Jedis客户端~~~");
-        Jedis jedis = jedisPool.getResource();
-        return jedis;
+        return jedisPool.getResource();
     }
 
     public static void main(String[] args) {

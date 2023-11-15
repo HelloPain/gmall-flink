@@ -171,6 +171,13 @@
             <artifactId>jedis</artifactId>
             <version>3.3.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.lettuce</groupId>
+            <artifactId>lettuce-core</artifactId>
+            <version>6.2.4.RELEASE</version>
+        </dependency>
+
     </dependencies>
 
     <build>

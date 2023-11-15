@@ -217,6 +217,7 @@ public class DwdTradeOrderDetail {
                         ")" + FlinkSqlUtil.getUpsertKafkaProducerDDL(Common.TOPIC_DWD_TRADE_ORDER_DETAIL));
 
         tableEnv.executeSql("insert into dwd_order_add select * from joined");
+        //tableEnv.toDataStream(tableEnv.sqlQuery("select * from dwd_order_add")).print();
 
         //env.execute();
     }
