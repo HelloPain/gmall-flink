@@ -10,9 +10,9 @@ import redis.clients.jedis.Jedis;
 import util.*;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.lang.reflect.InvocationTargetException;
+import java.sql.SQLException;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
@@ -27,6 +27,7 @@ public abstract class AddDimInfoMultiThreadFunc<IN, OUT> extends RichAsyncFuncti
     final String tableName;
     List<String> finalPks;
     ThreadPoolExecutor threadPool;
+    java.sql.Connection mysqlConn;
 
 
     public AddDimInfoMultiThreadFunc(String _tableName) {
@@ -37,10 +38,33 @@ public abstract class AddDimInfoMultiThreadFunc<IN, OUT> extends RichAsyncFuncti
     public void open(Configuration parameters) throws Exception {
         threadPool = ThreadPoolUtil.getThreadPoolExecutor();
 
-        java.sql.Connection mysqlConn = java.sql.DriverManager.getConnection(
+        mysqlConn = java.sql.DriverManager.getConnection(
                 Common.MYSQL_URL,
                 Common.MYSQL_USERNAME,
                 Common.MYSQL_PASSWORD);
+        updateRepartitionKey();
+        //check if mysql has changed every delay, update repartition key
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    updateRepartitionKey();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                } catch (InstantiationException e) {
+                    throw new RuntimeException(e);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                } catch (NoSuchFieldException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }, 10000L, 10000L);
+    }
+
+    private void updateRepartitionKey() throws SQLException, NoSuchFieldException, InvocationTargetException, InstantiationException, IllegalAccessException {
         List<String> repKeyList = queryList(
                 mysqlConn,
                 "select sink_extend from gmall_config.table_process where sink_table='" + tableName + "';",
@@ -54,6 +78,10 @@ public abstract class AddDimInfoMultiThreadFunc<IN, OUT> extends RichAsyncFuncti
                     .collect(Collectors.toList());
             finalPks.add(pks[pks.length - 1]);
         }
+    }
+
+    @Override
+    public void close() throws Exception {
         mysqlConn.close();
     }
 
@@ -89,6 +117,7 @@ public abstract class AddDimInfoMultiThreadFunc<IN, OUT> extends RichAsyncFuncti
             }
         });
     }
+
     @Override
     public void timeout(IN input, ResultFuture<OUT> resultFuture) throws Exception {
         System.out.println("TimeOut>>>>>>" + input);

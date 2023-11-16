@@ -12,9 +12,9 @@ import util.DimRedisUtil;
 import util.HBaseUtil;
 import util.JedisUtil;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.lang.reflect.InvocationTargetException;
+import java.sql.SQLException;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -33,7 +33,8 @@ public abstract class AddDimInfoAsyncFunc<IN, OUT> extends RichAsyncFunction<IN,
     private AsyncConnection asyncConnection;
     private StatefulRedisConnection<String, String> redisConnection;
     private final String tableName;
-    List<String> finalPks;
+    private List<String> finalPks;
+    private java.sql.Connection mysqlConn;
 
 
     public AddDimInfoAsyncFunc(String _tableName) {
@@ -49,6 +50,30 @@ public abstract class AddDimInfoAsyncFunc<IN, OUT> extends RichAsyncFunction<IN,
                 util.Common.MYSQL_URL,
                 util.Common.MYSQL_USERNAME,
                 util.Common.MYSQL_PASSWORD);
+        updateRepartitionKey();
+        //check if mysql has changed every delay, update repartition key
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    updateRepartitionKey();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                } catch (InstantiationException e) {
+                    throw new RuntimeException(e);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                } catch (NoSuchFieldException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }, 10000L, 10000L);
+        mysqlConn.close();
+    }
+
+    private void updateRepartitionKey() throws SQLException, NoSuchFieldException, InvocationTargetException, InstantiationException, IllegalAccessException {
         List<String> repKeyList = queryList(
                 mysqlConn,
                 "select sink_extend from gmall_config.table_process where sink_table='" + tableName + "';",
@@ -62,7 +87,6 @@ public abstract class AddDimInfoAsyncFunc<IN, OUT> extends RichAsyncFunction<IN,
                     .collect(Collectors.toList());
             finalPks.add(pks[pks.length - 1]);
         }
-        mysqlConn.close();
     }
 
     @Override

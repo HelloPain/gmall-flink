@@ -29,6 +29,7 @@ public class GetRowKeyUDF extends ScalarFunction {
                         "select * from gmall_config.table_process"
                         , TableProcess.class, true)
                 .forEach(t -> sinkExtends.put(t.getSinkTable(), t.getSinkExtend()));
+        //check if mysql has changed every delay, update sinkExtends
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -49,7 +50,7 @@ public class GetRowKeyUDF extends ScalarFunction {
                     throw new RuntimeException(e);
                 }
             }
-        },10000L,10000L);//check if mysql has changed every delay, update sinkExtends
+        },10000L,10000L);
     }
 
     public String eval(String rowKey, String tableName) {
