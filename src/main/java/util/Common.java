@@ -59,6 +59,7 @@ public class Common {
     public static final String MYSQL_URL = "jdbc:mysql://hadoop102:3306?allowPublicKeyRetrieval=true&useSSL=false";
 
     public static final String TOPIC_DWD_USER_REGISTER = "dwd_user_register";
+    public static final String KAFKA_DWD_USER_REGISTER_GROUP = "dwd_user_register_group";
 
     public static final int ONE_DAY = 24 * 60 * 60;
 

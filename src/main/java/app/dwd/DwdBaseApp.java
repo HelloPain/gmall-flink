@@ -38,6 +38,7 @@ public class DwdBaseApp {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(Common.PARALLELISM);
+
         //1.read topic_db data from kafka
         KafkaSource<String> kafkaSource = KafkaUtil.getKafkaSource(Common.TOPIC_ODS_DB, Common.KAFKA_DIM_GROUP);
         DataStreamSource<String> kafkaDs = env.fromSource(kafkaSource,
