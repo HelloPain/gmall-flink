@@ -56,7 +56,7 @@ public class Common {
 
     public static final String MYSQL_DRIVER = "com.mysql.cj.jdbc.Driver";
 
-    public static final String MYSQL_URL = "jdbc:mysql://hadoop102:3306?useSSL=false";
+    public static final String MYSQL_URL = "jdbc:mysql://hadoop102:3306?allowPublicKeyRetrieval=true&useSSL=false";
 
     public static final String TOPIC_DWD_USER_REGISTER = "dwd_user_register";
 
