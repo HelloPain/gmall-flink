@@ -149,7 +149,7 @@ public class DwdTradeRefundPaySuc {
                             "primary key(id) not enforced\n" +
                             ")" + FlinkSqlUtil.getUpsertKafkaProducerDDL(Common.TOPIC_DWD_TRADE_ORDER_REFUND));
 
-        // TODO 9. 将关联结果写入 Upsert-Kafka 表
+
         tableEnv.executeSql("" +
                 "insert into dwd_trade_order_refund select * from joined");
 

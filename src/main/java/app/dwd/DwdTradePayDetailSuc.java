@@ -153,7 +153,7 @@ public class DwdTradePayDetailSuc {
                                 "primary key(order_detail_id) not enforced\n" +
                         ")" + FlinkSqlUtil.getUpsertKafkaProducerDDL(Common.TOPIC_DWD_TRADE_PAY_DETAIL_SUC));
 
-        // TODO 9. 将关联结果写入 Upsert-Kafka 表
+
         tableEnv.executeSql("insert into dwd_trade_pay_detail_suc select * from result_table");
 
     }
