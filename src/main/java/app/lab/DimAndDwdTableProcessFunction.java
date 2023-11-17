@@ -15,6 +15,7 @@ import util.HBaseUtil;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -75,20 +76,31 @@ public class DimAndDwdTableProcessFunction extends BroadcastProcessFunction<JSON
          * */
 
         ReadOnlyBroadcastState<String, TableProcess> broadcastState = ctx.getBroadcastState(mapStateDescriptor);
+        //user info table can be dwd and dim simultaneously, it has two table config item
+        List<TableProcess> tableProcessList = new ArrayList<>();
+
         //get table config for dim table
-        TableProcess tableProcess = broadcastState.get(value.getString("table"));
-        if (tableProcess == null) {
-            tableProcess = cacheMap.get(value.getString("table"));
+        String dimKey = value.getString("table");
+        TableProcess dimTableProcess = broadcastState.get(dimKey);
+        if (dimTableProcess == null) {
+            dimTableProcess = cacheMap.get(dimKey);
         }
+        if (dimTableProcess != null) {
+            tableProcessList.add(dimTableProcess);
+        }
+
         //get table config for dwd table
-        if (tableProcess == null) {
-            String key = value.getString("type") + value.getString("table");
-            tableProcess = broadcastState.get(key);
-            if(tableProcess == null)
-                tableProcess = cacheMap.get(key);
+        String dwdKey = value.getString("type") + value.getString("table");
+        TableProcess dwdTableProcess = broadcastState.get(dwdKey);
+        if (dwdTableProcess == null) {
+            dwdTableProcess = cacheMap.get(dwdKey);
         }
+        if (dwdTableProcess != null) {
+            tableProcessList.add(dwdTableProcess);
+        }
+
         //if table config is not null, then filter columns and output
-        if (tableProcess != null) {
+        for (TableProcess tableProcess : tableProcessList) {
             if ("dim".equals(tableProcess.getSinkType())) {
                 filterColumns(value.getJSONObject("data"), tableProcess.getSinkColumns());
                 value.put("sink_table", tableProcess.getSinkTable());
@@ -101,11 +113,8 @@ public class DimAndDwdTableProcessFunction extends BroadcastProcessFunction<JSON
                 JSONObject data = value.getJSONObject("data");
                 filterColumns(data, tableProcess.getSinkColumns());
                 data.put("sink_topic", tableProcess.getSinkTable());
-                //out.collect(data);
                 ctx.output(dwdOutputTag, data);
             }
-            //System.out.println("value = " + value);
-            //System.out.println("DimTableProcessFunction.count = " + ++count);
         }
     }
 
