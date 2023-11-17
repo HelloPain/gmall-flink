@@ -25,29 +25,29 @@ public class DwdTradePayDetailSuc {
         //1.read from kafka dwd_trade_order_detail, turn it into flink table
         tableEnv.executeSql(
                 "Create table dwd_order_detail(\n" +
-                                "order_detail_id string,\n" +
-                                "order_id string,\n" +
-                                "user_id string,\n" +
-                                "sku_id string,\n" +
-                                "sku_name string,\n" +
-                                "province_id string,\n" +
-                                "activity_id string,\n" +
-                                "activity_rule_id string,\n" +
-                                "coupon_id string,\n" +
-                                "date_id string,\n" +
-                                "create_time string,\n" +
-                                "source_id string,\n" +
-                                "source_type string,\n" +
-                                "source_type_name string,\n" +
-                                "sku_num string,\n" +
-                                "split_original_amount string,\n" +
-                                "split_activity_amount string,\n" +
-                                "split_coupon_amount string,\n" +
-                                "split_total_amount string,\n" +
-                                "pt AS PROCTIME(),\n" +
-                                "ts bigint,\n" +
-                                "rt as TO_TIMESTAMP_LTZ(ts,0),\n" +
-                                "WATERMARK FOR `rt` AS `rt` - INTERVAL '2' SECOND" +
+                            "order_detail_id string,\n" +
+                            "order_id string,\n" +
+                            "user_id string,\n" +
+                            "sku_id string,\n" +
+                            "sku_name string,\n" +
+                            "province_id string,\n" +
+                            "activity_id string,\n" +
+                            "activity_rule_id string,\n" +
+                            "coupon_id string,\n" +
+                            "date_id string,\n" +
+                            "create_time string,\n" +
+                            "source_id string,\n" +
+                            "source_type string,\n" +
+                            "source_type_name string,\n" +
+                            "sku_num string,\n" +
+                            "split_original_amount string,\n" +
+                            "split_activity_amount string,\n" +
+                            "split_coupon_amount string,\n" +
+                            "split_total_amount string,\n" +
+                            "pt AS PROCTIME(),\n" +
+                            "ts bigint,\n" +
+                            "rt as TO_TIMESTAMP_LTZ(ts,0),\n" +
+                            "WATERMARK FOR `rt` AS `rt` - INTERVAL '2' SECOND" +
                         ")" +
                         FlinkSqlUtil.getKafkaConsumerDDL(Common.TOPIC_DWD_TRADE_ORDER_DETAIL, Common.KAFKA_DWD_PAY_SUC_GROUP));
         //tableEnv.sqlQuery("select * from dwd_order_detail").execute().print();
@@ -70,7 +70,7 @@ public class DwdTradePayDetailSuc {
                         "and data['payment_status']='1602'"
         );
         tableEnv.createTemporaryView("payment_info", paymentInfo);
-        //tableEnv.sqlQuery("select * from payment_info").execute().print();
+        // tableEnv.sqlQuery("select * from payment_info").execute().print();
 
         //2.read base_dic from hbase
         tableEnv.executeSql("CREATE TABLE dim_base_dic (\n" +
@@ -86,11 +86,11 @@ public class DwdTradePayDetailSuc {
         //3.lookup join
         Table joinTable = tableEnv.sqlQuery("" +
                 "select\n" +
-                    "pi.order_id order_id,\n" +
-                    "pi.payment_type payment_type_code,\n" +
-                    "dim_base_dic.info.dic_name payment_type_name,\n" +
-                    "pi.callback_time,\n" +
-                    "pi.rt\n" +
+                "pi.order_id order_id,\n" +
+                "pi.payment_type payment_type_code,\n" +
+                "dim_base_dic.info.dic_name payment_type_name,\n" +
+                "pi.callback_time,\n" +
+                "pi.rt\n" +
                 "from payment_info pi\n" +
                 "join dim_base_dic for system_time as of pi.pt\n" +
                 "on pi.payment_type = dim_base_dic.rowkey");
@@ -123,34 +123,35 @@ public class DwdTradePayDetailSuc {
                 "from dwd_order_detail od join payment_info_with_name pi\n" +
                 "on od.order_id = pi.order_id\n " +
                 "and od.rt >= pi.rt - INTERVAL '15' MINUTE \n" +
-                "and od.rt <= pi.rt + INTERVAL '5' SECOND");
+                "and od.rt <= pi.rt + INTERVAL '5' SECOND"
+        );
         tableEnv.createTemporaryView("result_table", resultTable);
         //tableEnv.sqlQuery("select * from result_table").execute().print();
 
         tableEnv.executeSql(
                 "Create table dwd_trade_pay_detail_suc(\n" +
-                                "order_detail_id string,\n" +
-                                "order_id string,\n" +
-                                "user_id string,\n" +
-                                "sku_id string,\n" +
-                                "sku_name string,\n" +
-                                "province_id string,\n" +
-                                "activity_id string,\n" +
-                                "activity_rule_id string,\n" +
-                                "coupon_id string,\n" +
-                                "payment_type_code string,\n" +
-                                "payment_type_name string,\n" +
-                                "callback_time string,\n" +
-                                "source_id string,\n" +
-                                "source_type_code string,\n" +
-                                "source_type_name string,\n" +
-                                "sku_num string,\n" +
-                                "split_original_amount string,\n" +
-                                "split_activity_amount string,\n" +
-                                "split_coupon_amount string,\n" +
-                                "split_payment_amount string,\n" +
-                                "ts bigint,\n" +
-                                "primary key(order_detail_id) not enforced\n" +
+                        "order_detail_id string,\n" +
+                        "order_id string,\n" +
+                        "user_id string,\n" +
+                        "sku_id string,\n" +
+                        "sku_name string,\n" +
+                        "province_id string,\n" +
+                        "activity_id string,\n" +
+                        "activity_rule_id string,\n" +
+                        "coupon_id string,\n" +
+                        "payment_type_code string,\n" +
+                        "payment_type_name string,\n" +
+                        "callback_time string,\n" +
+                        "source_id string,\n" +
+                        "source_type_code string,\n" +
+                        "source_type_name string,\n" +
+                        "sku_num string,\n" +
+                        "split_original_amount string,\n" +
+                        "split_activity_amount string,\n" +
+                        "split_coupon_amount string,\n" +
+                        "split_payment_amount string,\n" +
+                        "ts bigint,\n" +
+                        "primary key(order_detail_id) not enforced\n" +
                         ")" + FlinkSqlUtil.getUpsertKafkaProducerDDL(Common.TOPIC_DWD_TRADE_PAY_DETAIL_SUC));
 
 

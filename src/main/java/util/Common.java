@@ -61,6 +61,8 @@ public class Common {
     public static final String TOPIC_DWD_USER_REGISTER = "dwd_user_register";
     public static final String KAFKA_DWD_USER_REGISTER_GROUP = "dwd_user_register_group";
 
+    public static final String KAFKA_DWD_TRADE_PAY_DETAIL_SUC_GROUP = "dwd_trade_pay_detail_suc";
+
     public static final int ONE_DAY = 24 * 60 * 60;
 
     public static final String DORIS_FE_NODES = "hadoop102:7030";
