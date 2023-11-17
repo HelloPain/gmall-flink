@@ -46,7 +46,7 @@ public abstract class AddDimInfoAsyncFunc<IN, OUT> extends RichAsyncFunction<IN,
         asyncConnection = HBaseUtil.getAsyncConnection();
         redisConnection = JedisUtil.getAsyncRedisConnection();
 
-        java.sql.Connection mysqlConn = java.sql.DriverManager.getConnection(
+        mysqlConn = java.sql.DriverManager.getConnection(
                 util.Common.MYSQL_URL,
                 util.Common.MYSQL_USERNAME,
                 util.Common.MYSQL_PASSWORD);
@@ -69,8 +69,7 @@ public abstract class AddDimInfoAsyncFunc<IN, OUT> extends RichAsyncFunction<IN,
                     throw new RuntimeException(e);
                 }
             }
-        }, 10000L, 10000L);
-        mysqlConn.close();
+        }, 60 * 1000 * 60 * 24L, 60 * 1000 * 60 * 24L);
     }
 
     private void updateRepartitionKey() throws SQLException, NoSuchFieldException, InvocationTargetException, InstantiationException, IllegalAccessException {
@@ -93,6 +92,7 @@ public abstract class AddDimInfoAsyncFunc<IN, OUT> extends RichAsyncFunction<IN,
     public void close() throws Exception {
         asyncConnection.close();
         redisConnection.close();
+        mysqlConn.close();
     }
 
     public abstract String getPk(IN input);
@@ -102,7 +102,7 @@ public abstract class AddDimInfoAsyncFunc<IN, OUT> extends RichAsyncFunction<IN,
     @Override
     public void asyncInvoke(IN input, ResultFuture<OUT> resultFuture) throws Exception {
         String rowKey = getPk(input);
-        if (finalPks.size() > 0) {
+        if (finalPks != null && finalPks.size() > 0) {
             rowKey = finalPks.get(rowKey.hashCode() % finalPks.size()) + rowKey;
         }
         String finalRowKey = rowKey;
